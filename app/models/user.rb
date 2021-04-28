@@ -41,4 +41,5 @@ class User < ApplicationRecord
   has_many :artiles, dependent: :destroy
   has_many :comments, dependent: :destroy
   has_many :article_likes, dependent: :destroy
+  validates :name, presence: true, uniqueness: { case_sensitive: false }
 end

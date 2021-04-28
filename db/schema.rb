@@ -65,6 +65,7 @@ ActiveRecord::Schema.define(version: 2021_04_28_012424) do
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
+    t.index ["name"], name: 'index', unique: true
   end
 
   add_foreign_key "article_likes", "articles"

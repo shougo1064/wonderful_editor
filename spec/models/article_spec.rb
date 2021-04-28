@@ -20,5 +20,38 @@
 require "rails_helper"
 
 RSpec.describe Article, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  context "必要な情報が揃っている時" do
+    let(:user) { build(:user) }
+    let(:article) { build(:article, user: user) }
+    it "機材の作成に成功する" do
+      expect(article).to be_valid
+    end
+  end
+
+  context "body が入力されていない時" do
+    let(:user) { build(:user) }
+    let(:article) { build(:article, user: user, body: nil) }
+    it "記事の作成に失敗する" do
+      expect(article).to be_invalid
+      expect(article.errors.details[:body][0][:error]).to eq :blank
+    end
+  end
+
+  context "title が入力されていないとき" do
+    let(:user) { build(:user) }
+    let(:article) { build(:article, user: user, title: nil) }
+    it "記事の作成に失敗する" do
+      expect(article).to be_invalid
+      expect(article.errors.details[:title][0][:error]).to eq :blank
+    end
+  end
+
+  context "title が51文字以上の時" do
+    let(:user) { build(:user) }
+    let(:article) { build(:article, user: user, title: "a" * 51) }
+    it "記事の作成に失敗する" do
+      expect(article).to be_invalid
+      expect(article.errors.messages[:title]).to eq ["is too long (maximum is 50 characters)"]
+    end
+  end
 end
