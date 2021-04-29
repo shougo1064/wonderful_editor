@@ -69,4 +69,17 @@ RSpec.describe "Api::V1::Articles", type: :request do
       end
     end
   end
+  describe "PATCH /api/v1/articles/:id" do
+    subject { patch(api_v1_article_path(article_id), params: params) }
+    let(:article_id) { article.id }
+    let(:article) { create(:article, user: current_user) }
+    let(:params) {  { article: { title: "foo", created_at: 1.days.ago } }  }
+    let(:current_user) { create(:user) }
+    before { allow_any_instance_of(Api::V1::BaseApiController).to receive(:current_user).and_return(current_user) }
+    it "適切な値だけ更新されている" do
+      expect{ subject }.to change { article.reload.title }.from(article.title).to(params[:article][:title]) &
+                           not_change { article.reload.body} &
+                           not_change { article.reload.created_at}
+    end
+  end
 end
