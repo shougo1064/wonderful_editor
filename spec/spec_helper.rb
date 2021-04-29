@@ -13,7 +13,10 @@
 # it.
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
+# RSpec::Matchers.define_negated_matcher :not_change, :change
 RSpec.configure do |config|
+  RSpec::Matchers.define_negated_matcher :not_change, :change
+
   config.before(:all) do
     FactoryBot.reload
   end
