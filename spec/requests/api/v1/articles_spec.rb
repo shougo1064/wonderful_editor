@@ -57,29 +57,58 @@ RSpec.describe "Api::V1::Articles", type: :request do
         expect(res["title"]).to eq params[:article][:title]
         expect(res["body"]).to eq params[:article][:body]
         expect(res["user"]["id"]).to eq current_user.id
-        expect(response).to have_http_status(200)
+        expect(response).to have_http_status(:ok)
       end
     end
+
     context "不適切なパラメータを送信した時" do
       let(:params) { attributes_for(:article) }
       let(:current_user) { create(:user) }
       before { allow_any_instance_of(Api::V1::BaseApiController).to receive(:current_user).and_return(current_user) }
+
       it "記事作成に失敗する" do
         expect { subject }.to raise_error(ActionController::ParameterMissing)
       end
     end
   end
+
   describe "PATCH /api/v1/articles/:id" do
     subject { patch(api_v1_article_path(article_id), params: params) }
+
     let(:article_id) { article.id }
     let(:article) { create(:article, user: current_user) }
-    let(:params) {  { article: { title: "foo", created_at: 1.days.ago } }  }
+    let(:params) {  { article: { title: "foo", created_at: 1.days.ago } } }
     let(:current_user) { create(:user) }
     before { allow_any_instance_of(Api::V1::BaseApiController).to receive(:current_user).and_return(current_user) }
+
     it "適切な値だけ更新されている" do
-      expect{ subject }.to change { article.reload.title }.from(article.title).to(params[:article][:title]) &
-                           not_change { article.reload.body} &
-                           not_change { article.reload.created_at}
+      expect { subject }.to change { article.reload.title }.from(article.title).to(params[:article][:title]) &
+                            not_change { article.reload.body } &
+                            not_change { article.reload.created_at }
+    end
+  end
+
+  describe "DELETE /api/v1/articles/:id" do
+    subject { delete(api_v1_article_path(article_id)) }
+
+    let(:article_id) { article.id }
+    let(:current_user) { create(:user) }
+    before { allow_any_instance_of(Api::V1::BaseApiController).to receive(:current_user).and_return(current_user) }
+
+    context "自分が作成した記事を削除するとき" do
+      let!(:article) { create(:article, user: current_user) }
+      it "記事が削除できる" do
+        expect { subject }.to change { Article.count }.by(-1)
+        expect(response).to have_http_status(:no_content)
+      end
+    end
+
+    context "他のユーザーの記事を削除しようとする時" do
+      let!(:article) { create(:article, user: other_user) }
+      let(:other_user) { create(:user) }
+      it "エラーする" do
+        expect { subject }.to raise_error(ActiveRecord::RecordNotFound)
+      end
     end
   end
 end
