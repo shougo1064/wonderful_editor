@@ -4,6 +4,7 @@
 #
 #  id         :bigint           not null, primary key
 #  body       :text
+#  status     :string           default("draft")
 #  title      :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
@@ -20,18 +21,34 @@
 require "rails_helper"
 
 RSpec.describe Article, type: :model do
-  context "必要な情報が揃っている時" do
-    let(:user) { build(:user) }
-    let(:article) { build(:article, user: user) }
-    it "機材の作成に成功する" do
+  context "必要なレコードが入力されている時" do
+    let(:article) { build(:article) }
+    it "下書き状態の記事が作成できる" do
       expect(article).to be_valid
+      expect(article.status).to eq "draft"
+    end
+  end
+
+  context "status が下書き状態のとき" do
+    let(:article) { build(:article, :draft) }
+    it "下書き状態の記事が作成できる" do
+      expect(article).to be_valid
+      expect(article.status).to eq "draft"
+    end
+  end
+
+  context "status が公開状態のとき" do
+    let(:article) { build(:article, :published) }
+    it "公開状態の記事が作成できる" do
+      expect(article).to be_valid
+      expect(article.status).to eq "published"
     end
   end
 
   context "body が入力されていない時" do
     let(:user) { build(:user) }
     let(:article) { build(:article, user: user, body: nil) }
-    it "記事の作成に失敗する" do
+    it "記事が作成できない" do
       expect(article).to be_invalid
       expect(article.errors.details[:body][0][:error]).to eq :blank
     end
@@ -40,7 +57,7 @@ RSpec.describe Article, type: :model do
   context "title が入力されていないとき" do
     let(:user) { build(:user) }
     let(:article) { build(:article, user: user, title: nil) }
-    it "記事の作成に失敗する" do
+    it "記事が作成できない" do
       expect(article).to be_invalid
       expect(article.errors.details[:title][0][:error]).to eq :blank
     end
@@ -49,7 +66,7 @@ RSpec.describe Article, type: :model do
   context "title が51文字以上の時" do
     let(:user) { build(:user) }
     let(:article) { build(:article, user: user, title: "a" * 51) }
-    it "記事の作成に失敗する" do
+    it "記事が作成できない" do
       expect(article).to be_invalid
       expect(article.errors.messages[:title]).to eq ["is too long (maximum is 50 characters)"]
     end
