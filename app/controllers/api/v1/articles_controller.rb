@@ -12,7 +12,6 @@ module Api::V1
     end
 
     def create
-      # binding.pry
       article = current_user.articles.create!(article_params)
       render json: article, serializer: Api::V1::ArticleSerializer
     end
