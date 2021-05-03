@@ -44,13 +44,12 @@ RSpec.describe "Api::V1::Articles", type: :request do
   end
 
   describe "POST /api/v1/articles" do
-    subject { post(api_v1_articles_path, params: params) }
+    subject { post(api_v1_articles_path, params: params, headers: headers) }
 
     context "適切なパラメータを送信した時" do
       let(:params) { { article: attributes_for(:article) } }
       let(:current_user) { create(:user) }
-      before { allow_any_instance_of(Api::V1::BaseApiController).to receive(:current_user).and_return(current_user) }
-
+      let(:headers) { current_user.create_new_auth_token }
       it "記事が作成される" do
         expect { subject }.to change { Article.count }.by(1)
         res = JSON.parse(response.body)
@@ -64,8 +63,7 @@ RSpec.describe "Api::V1::Articles", type: :request do
     context "不適切なパラメータを送信した時" do
       let(:params) { attributes_for(:article) }
       let(:current_user) { create(:user) }
-      before { allow_any_instance_of(Api::V1::BaseApiController).to receive(:current_user).and_return(current_user) }
-
+      let(:headers) { current_user.create_new_auth_token }
       it "記事作成に失敗する" do
         expect { subject }.to raise_error(ActionController::ParameterMissing)
       end
@@ -73,13 +71,13 @@ RSpec.describe "Api::V1::Articles", type: :request do
   end
 
   describe "PATCH /api/v1/articles/:id" do
-    subject { patch(api_v1_article_path(article_id), params: params) }
+    subject { patch(api_v1_article_path(article_id), params: params, headers: headers) }
 
     let(:article_id) { article.id }
     let(:article) { create(:article, user: current_user) }
     let(:params) {  { article: { title: "foo", created_at: 1.days.ago } } }
     let(:current_user) { create(:user) }
-    before { allow_any_instance_of(Api::V1::BaseApiController).to receive(:current_user).and_return(current_user) }
+    let(:headers) { current_user.create_new_auth_token }
 
     it "適切な値だけ更新されている" do
       expect { subject }.to change { article.reload.title }.from(article.title).to(params[:article][:title]) &
@@ -89,11 +87,11 @@ RSpec.describe "Api::V1::Articles", type: :request do
   end
 
   describe "DELETE /api/v1/articles/:id" do
-    subject { delete(api_v1_article_path(article_id)) }
+    subject { delete(api_v1_article_path(article_id), headers: headers) }
 
     let(:article_id) { article.id }
     let(:current_user) { create(:user) }
-    before { allow_any_instance_of(Api::V1::BaseApiController).to receive(:current_user).and_return(current_user) }
+    let(:headers) { current_user.create_new_auth_token }
 
     context "自分が作成した記事を削除するとき" do
       let!(:article) { create(:article, user: current_user) }
