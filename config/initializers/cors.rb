@@ -10,6 +10,7 @@
     origins Settings.frontend.url
     resource "*",
              headers: :any,
+             expose: ["access-token", "expiry", "token-type", "uid", "client"],
              methods: [:get, :post, :put, :patch, :delete, :options]
   end
 end
